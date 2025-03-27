@@ -1,0 +1,12 @@
+{
+  "extends": "@kzero/dev/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "composite": true,
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": ["src"],
+  "exclude": ["build/**/*", "**/*.spec.ts", "**/test/**/*"],
+  "references": []
+}
