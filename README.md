@@ -4,10 +4,10 @@
 
 ![KZero service](./assets/logo.svg)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
-[![Turbo](https://img.shields.io/badge/Turbo-latest-blue)](https://turbo.build/)
-[![GitHub Stars](https://img.shields.io/github/stars/kzero-xyz/kzero-service.svg)](https://github.com/kzero-xyz/kzero-service/stargazers)
+[![License](https://img.shields.io/badge/License-GNU%20General%20Public%20License%20v3.0-green.svg)](https://opensource.org/license/gpl-3-0)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-orange)](https://www.typescriptlang.org/)
+[![Turbo](https://img.shields.io/badge/Turbo-latest-purple)](https://turbo.build/)
+[![GitHub Stars](https://img.shields.io/github/stars/kzero-xyz/kzero-service.svg?color=yellow)](https://github.com/kzero-xyz/kzero-service/stargazers)
 
 A monorepo containing the core services and libraries for the KZero project.
 
