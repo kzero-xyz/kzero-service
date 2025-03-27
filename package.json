@@ -1,0 +1,46 @@
+{
+  "author": "kzero",
+  "bugs": "https://github.com/kzero-xyz/kzero-service/issues",
+  "engines": {
+    "node": ">=20"
+  },
+  "homepage": "/",
+  "license": "GNU General Public License v3.0",
+  "name": "kzero-service",
+  "packageManager": "yarn@4.7.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kzero-xyz/kzero-service.git"
+  },
+  "sideEffects": true,
+  "type": "module",
+  "workspaces": [
+    "apps",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint --cache",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "dev": "turbo run dev",
+    "commit": "cz",
+    "preinstall": "npx only-allow yarn",
+    "postinstall": "husky"
+  },
+  "devDependencies": {
+    "@kzero/dev": "workspace:^",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^9.21.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.9",
+    "npm-run-all2": "^7.0.2",
+    "release-please": "^16.18.0",
+    "turbo": "^2.4.4"
+  },
+  "resolutions": {
+    "bn.js": "^5.2.1",
+    "typescript": "5.6.3"
+  }
+}
