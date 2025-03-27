@@ -1,0 +1,54 @@
+{
+  "author": "kzero",
+  "bugs": "https://github.com/kzero-xyz/kzero-service/issues",
+  "contributors": [],
+  "description": "kzero proof generation worker",
+  "homepage": "https://github.com/kzero-xyz/kzero-service/tree/master/packages/proof-worker#readme",
+  "license": "GNU General Public License v3.0",
+  "maintainers": [],
+  "repository": {
+    "directory": "packages/proof-worker",
+    "type": "git",
+    "url": "https://github.com/kzero-xyz/kzero-service.git"
+  },
+  "private": true,
+  "sideEffects": true,
+  "type": "module",
+  "name": "@kzero/proof-worker",
+  "version": "0.0.0",
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@kzero/source": "./src/index.ts",
+        "types": "./build/index.d.ts",
+        "default": "./build/index.js"
+      }
+    }
+  },
+  "files": [
+    "build",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "check-types": "tsc --noEmit",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11",
+    "@types/ws": "^8",
+    "npm-run-all2": "^7.0.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@kzero/common": "workspace:*",
+    "@kzero/logger": "workspace:*",
+    "dotenv": "^16.4.7",
+    "fs-extra": "^11.3.0",
+    "ws": "^8.18.1"
+  }
+}

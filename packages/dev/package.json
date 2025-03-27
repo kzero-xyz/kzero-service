@@ -7,12 +7,12 @@
   "homepage": "https://github.com/kzero-xyz/kzero-service/tree/master/packages/dev#readme",
   "license": "GNU General Public License v3.0",
   "packageManager": "yarn@4.5.3",
-  "private": true,
   "repository": {
     "directory": "packages/dev",
     "type": "git",
     "url": "https://github.com/kzero-xyz/kzero-service.git"
   },
+  "private": true,
   "sideEffects": true,
   "type": "module",
   "name": "@kzero/dev",
