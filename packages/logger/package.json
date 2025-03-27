@@ -30,7 +30,7 @@
   },
   "files": [
     "build",
-    "LICENSE"
+    "README.md"
   ],
   "scripts": {
     "build": "tsc --build",
