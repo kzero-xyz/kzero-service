@@ -27,7 +27,7 @@ A monorepo containing the core services and libraries for the KZero project.
 
 - [@kzero/common](./packages/common) - Common utilities and cryptographic functions
 - [@kzero/logger](./packages/logger) - Structured logging system
-- [@kzero/proof-worker](./packages/proof-worker) - Zero-knowledge proof generation worker with JWT
+- [@kzero/proof-worker](./packages/proof-worker) - ZK proof generation worker
 - [@kzero/dev](./packages/dev) - Development utilities and configurations
 
 ## 🛠️ Technology Stack
@@ -71,10 +71,6 @@ yarn clean
 # Lint code
 yarn lint
 ```
-
-## Using the Proof Worker CLI
-
-For detailed instructions on generating zero-knowledge proofs with our CLI tool, please refer to the [Proof Worker Documentation](./packages/proof-worker/README.md). The documentation provides comprehensive guidance on configuration, command options, and troubleshooting.
 
 ## 📜 Scripts
 

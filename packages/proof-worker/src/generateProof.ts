@@ -73,8 +73,6 @@ export async function generateProof(inputs: ZKLoginInput, fields: SuiProofFields
     const end = performance.now();
 
     logger.info(`Proof generation completed in ${end - start}ms`);
-    logger.info(`View proof: ${paths.proof}`);
-    logger.info(`View publicSignals: ${paths.public}`);
 
     return { proof, public: publicSignals };
   } catch (error) {
