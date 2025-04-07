@@ -30,6 +30,7 @@ function cleanUp(pattern) {
 // Delete all 'build' directories
 cleanUp('**/build');
 cleanUp('**/dist');
+cleanUp('**/.turbo');
 
 // Delete all '*.tsbuildinfo' files
 cleanUp('**/*.tsbuildinfo');

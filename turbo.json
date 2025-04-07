@@ -4,10 +4,10 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "build/**"]
+      "outputs": ["build/**"]
     },
     "check-types": {
-      "dependsOn": ["build"]
+      "dependsOn": ["^check-types"]
     },
     "dev": {
       "cache": false,

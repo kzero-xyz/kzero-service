@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "lib": ["ESNext", "ESNext.Array", "ES2023.Array"],
+    "sourceMap": true,
     "declaration": true,
     "isolatedModules": true,
     "strict": true,
