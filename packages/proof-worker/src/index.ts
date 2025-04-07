@@ -61,7 +61,7 @@ yargs(hideBin(process.argv))
       const key = argv.key;
       const epoch = argv.epoch;
       const randomness = argv.randomness;
-      const salt = argv.salt || BigInt(randomBytes(32).toString('hex')).toString();
+      const salt = argv.salt || BigInt('0x' + randomBytes(32).toString('hex')).toString();
       const certUrl = argv['cert-url'];
 
       const certs: JWTPublicKeyData[] = await fetch(certUrl)

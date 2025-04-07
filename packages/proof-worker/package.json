@@ -41,6 +41,7 @@
     "dev": "tsc --watch"
   },
   "devDependencies": {
+    "@kzero/dev": "workspace:^",
     "@types/fs-extra": "^11",
     "@types/ws": "^8",
     "@types/yargs": "^17.0.33",

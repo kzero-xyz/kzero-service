@@ -17,6 +17,13 @@
   "type": "module",
   "name": "@kzero/dev",
   "version": "0.0.0",
+  "files": [
+    "eslint.js",
+    "prettier.js",
+    "tsconfig.base.json",
+    "vitest.config.js",
+    "README.md"
+  ],
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "eslint": "^9.21.0",
@@ -36,7 +43,6 @@
     "prettier": "^3.5.3",
     "tailwind-variants": "^0.3.1",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.26.0"
+    "typescript": "^5.8.2"
   }
 }

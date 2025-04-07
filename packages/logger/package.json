@@ -38,6 +38,7 @@
     "dev": "tsc --watch"
   },
   "devDependencies": {
+    "@kzero/dev": "workspace:^",
     "npm-run-all2": "^7.0.2",
     "typescript": "^5.8.2"
   },

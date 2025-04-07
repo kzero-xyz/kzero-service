@@ -35,9 +35,11 @@
   "scripts": {
     "build": "tsc --build",
     "check-types": "tsc --noEmit",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@kzero/dev": "workspace:^",
     "npm-run-all2": "^7.0.2",
     "typescript": "^5.8.2"
   },
