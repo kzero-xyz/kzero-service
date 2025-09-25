@@ -47,7 +47,7 @@ The use of a GPU significantly reduces proof generation time, as demonstrated by
 ## 🛠️ Technology Stack
 - Node.js (>=20)
 - TypeScript
-- Yarn (v4.7.0)
+- pnpm (v10.17.1)
 - Turbo (Monorepo tooling)
 - ESLint
 - Husky (Git hooks)
@@ -58,31 +58,31 @@ The use of a GPU significantly reduces proof generation time, as demonstrated by
 ### Prerequisites
 
 - Node.js >= 20
-- Yarn >= 4.7.0
+- pnpm >= 10.17.1
 
 ### Installation
 ```bash
-yarn install
+pnpm install
 ```
 
 ### Start development mode
 ```bash
-yarn dev
+pnpm dev
 ```
 
 
 ### Development Scripts
-- `yarn dev` - Start development mode
-- `yarn build` - Build all packages
-- `yarn check-types` - Run TypeScript type checking
-- `yarn clean` - Clean build artifacts
-- `yarn lint` - Run ESLint
-- `yarn commit` - Create a conventional commit
+- `pnpm dev` - Start development mode
+- `pnpm build` - Build all packages
+- `pnpm check-types` - Run TypeScript type checking
+- `pnpm clean` - Clean build artifacts
+- `pnpm lint` - Run ESLint
+- `pnpm commit` - Create a conventional commit
 
 
 ## 😄 Using the Proof Worker CLI
 
-This repository serves as a Zero-Knowledge Proof (ZKP) generation worker for KZero services. It is designed to efficiently generate ZKPs, leveraging cryptographic techniques to ensure privacy and data integrity. The worker facilitates seamless integration with KZero’s authentication flow, enabling the generation of ZKPs based on JWT authentication. 
+This repository serves as a Zero-Knowledge Proof (ZKP) generation worker for KZero services. It is designed to efficiently generate ZKPs, leveraging cryptographic techniques to ensure privacy and data integrity. The worker facilitates seamless integration with KZero’s authentication flow, enabling the generation of ZKPs based on JWT authentication.
 
 ### Configuration
 
