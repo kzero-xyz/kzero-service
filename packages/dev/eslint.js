@@ -13,7 +13,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/*', 'build/*', '**/dist/*', '**/build/*', '.turbo/*', '**/.turbo', '.yarn/*'] },
+  { ignores: ['dist/*', 'build/*', '**/dist/*', '**/build/*', '.turbo/*', '**/.turbo'] },
   {
     extends: [
       js.configs.recommended,

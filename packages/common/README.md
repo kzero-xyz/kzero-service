@@ -16,7 +16,7 @@ Documentation coming soon.
 To run the tests, use the following command:
 
 ```bash
-yarn test
+pnpm test
 ```
 
 The test suite includes:

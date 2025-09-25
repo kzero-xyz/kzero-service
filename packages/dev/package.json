@@ -6,7 +6,6 @@
   },
   "homepage": "https://github.com/kzero-xyz/kzero-service/tree/master/packages/dev#readme",
   "license": "GNU General Public License v3.0",
-  "packageManager": "yarn@4.5.3",
   "repository": {
     "directory": "packages/dev",
     "type": "git",

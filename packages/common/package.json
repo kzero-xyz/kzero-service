@@ -48,6 +48,7 @@
     "@mysten/sui.js": "^0.54.1",
     "@polkadot/util": "^13.4.3",
     "@polkadot/util-crypto": "^13.4.3",
-    "jose": "^6.0.10"
+    "jose": "^6.0.10",
+    "poseidon-lite": "^0.3.0"
   }
 }
