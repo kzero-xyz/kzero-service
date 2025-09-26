@@ -5,8 +5,9 @@ import type { Groth16Proof, SuiProofFields, ZKLoginInput } from '@kzero/common';
 
 import { mkdirp, readJson, writeJson } from 'fs-extra/esm';
 import { exec } from 'node:child_process';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { groth16, wtns } from 'snarkjs';
 
 import { loggers } from './utils/logger.js';
 
@@ -59,16 +60,20 @@ export async function generateProof(inputs: ZKLoginInput, fields: SuiProofFields
 
     // Generate witness
     logger.info('Generating witness...');
-    await execAsync(`${CONFIG.witnessBinPath} ${paths.input} ${paths.witness}`, {
-      cwd: process.cwd()
-    });
+    // await execAsync(`${CONFIG.witnessBinPath} ${paths.input} ${paths.witness}`, {
+    //   cwd: process.cwd()
+    // });
+    const wasmPath = './zkLogin_js/zkLogin.wasm';
+
+    await wtns.calculate(inputs as any, wasmPath, paths.witness);
 
     // Generate proof
     logger.info('Generating proof...');
-    await execAsync(`${CONFIG.proverBinPath} ${CONFIG.zkeyPath} ${paths.witness} ${paths.proof} ${paths.public}`);
+    // await execAsync(`${CONFIG.proverBinPath} ${CONFIG.zkeyPath} ${paths.witness} ${paths.proof} ${paths.public}`);
+    const { proof, publicSignals } = await groth16.prove(CONFIG.zkeyPath, paths.witness);
 
     // Read and parse results
-    const [proof, publicSignals] = await Promise.all([readJson(paths.proof), readJson(paths.public)]);
+    // const [proof, publicSignals] = await Promise.all([readJson(paths.proof), readJson(paths.public)]);
 
     const end = performance.now();
 

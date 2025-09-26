@@ -43,6 +43,7 @@
   "devDependencies": {
     "@kzero/dev": "workspace:^",
     "@types/fs-extra": "^11",
+    "@types/snarkjs": "^0.7.0",
     "@types/ws": "^8",
     "@types/yargs": "^17.0.33",
     "npm-run-all2": "^7.0.2",
@@ -53,6 +54,7 @@
     "@kzero/logger": "workspace:*",
     "dotenv": "^16.4.7",
     "fs-extra": "^11.3.0",
+    "snarkjs": "^0.7.0",
     "ws": "^8.18.1",
     "yargs": "^17.7.2"
   }
