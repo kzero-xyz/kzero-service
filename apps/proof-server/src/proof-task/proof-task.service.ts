@@ -1,19 +1,32 @@
 // Copyright 2024-2025 kzero authors & contributors
 // SPDX-License-Identifier: GNU General Public License v3.0
 
-import type { ZKLoginInput } from '@kzero/common';
-
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProofWebsocketGateway } from '../proof-websocket/proof-websocket.gateway.js';
 
-const PROOF_TIMEOUT = 15000;
+/**
+ * Proof generation timeout (60 seconds)
+ *
+ * Typical generation: 10-30s. Adjust based on worker performance.
+ */
+const PROOF_TIMEOUT = 60000;
 
+/**
+ * Proof Task Scheduler Service
+ *
+ * Polls database every 10 seconds for pending proofs and assigns them to available workers.
+ * Uses FIFO ordering, 60-second timeout, and in-memory Set to prevent duplicate assignments.
+ */
 @Injectable()
 export class ProofTaskService {
   private readonly logger = new Logger(ProofTaskService.name);
+
+  /**
+   * Set of proof IDs currently being processed (prevents duplicate assignments)
+   */
   private readonly processingProofs = new Set<string>();
 
   constructor(
@@ -24,8 +37,9 @@ export class ProofTaskService {
   @Cron(CronExpression.EVERY_10_SECONDS)
   async handleProofTasks() {
     try {
+      // Find oldest pending proof (FIFO)
       const proof = await this.prisma.proof.findFirst({
-        where: { status: 'WAITING' },
+        where: { status: 'waiting' },
         orderBy: { createdAt: 'asc' },
       });
 
@@ -33,10 +47,12 @@ export class ProofTaskService {
         return;
       }
 
+      // Prevent duplicate processing
       if (this.processingProofs.has(proof.id)) {
         return;
       }
 
+      // Get available worker
       const worker = this.websocketGateway.getAvailableWorker();
 
       if (!worker) {
@@ -47,26 +63,28 @@ export class ProofTaskService {
 
       this.processingProofs.add(proof.id);
 
+      // Update status and send to worker
       await this.prisma.proof.update({
         where: { id: proof.id },
-        data: { status: 'PROCESSING' },
+        data: { status: 'generating' },
       });
 
       this.logger.log(`Assigned proof ${proof.id} to worker`);
 
-      this.websocketGateway.sendTask(worker, proof.id, proof.zkInput as unknown as ZKLoginInput, proof.salt);
+      this.websocketGateway.sendTask(worker, proof);
 
+      // Start timeout timer (mark as failed if not completed in 60s)
       setTimeout(async () => {
         try {
           const currentProof = await this.prisma.proof.findUnique({
             where: { id: proof.id },
           });
 
-          if (currentProof && currentProof.status === 'PROCESSING') {
-            this.logger.error(`Proof ${proof.id} generation timeout`);
+          if (currentProof && currentProof.status === 'generating') {
+            this.logger.error(`Proof ${proof.id} generation timeout (60s exceeded)`);
             await this.prisma.proof.update({
               where: { id: proof.id },
-              data: { status: 'FAILED' },
+              data: { status: 'failed' },
             });
           }
         } catch (error) {

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GNU General Public License v3.0
 
 import type { Server } from 'ws';
-import type { Groth16Proof, SuiProofFields, ZKLoginInput } from '@kzero/common';
-import type { Prisma } from '@kzero/database';
+import type { Groth16Proof, PublicSignals } from '@kzero/common';
+import type { Prisma, Proof } from '@kzero/database';
 
 import { Logger } from '@nestjs/common';
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
@@ -17,11 +17,11 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 interface ProofResultMessage {
-  type: 'proof-result';
-  data: {
-    id: string;
-    zkProof: Groth16Proof & SuiProofFields;
-    addressSeed: string;
+  task: 'generateProof';
+  proofId: string;
+  results: {
+    proof: Groth16Proof;
+    public: PublicSignals;
   };
 }
 
@@ -72,10 +72,10 @@ export class ProofWebsocketGateway implements OnGatewayConnection, OnGatewayDisc
       try {
         const data = JSON.parse(message.toString('utf-8')) as ProofResultMessage;
 
-        if (data.type === 'proof-result') {
-          await this.handleProofResult(data.data);
+        if (data.task === 'generateProof') {
+          await this.handleProofResult(data.proofId, data.results);
         } else {
-          this.logger.warn(`Unknown message type: ${data.type}`);
+          this.logger.warn(`Unknown message type: ${data.task}`);
         }
       } catch (error) {
         this.logger.error('Failed to parse message:', error);
@@ -106,42 +106,39 @@ export class ProofWebsocketGateway implements OnGatewayConnection, OnGatewayDisc
     return null;
   }
 
-  sendTask(worker: ExtendedWebSocket, proofId: string, zkInput: ZKLoginInput, salt: string) {
+  sendTask(worker: ExtendedWebSocket, proof: Proof) {
     const message = JSON.stringify({
-      type: 'proof-task',
-      data: {
-        id: proofId,
-        zkInput,
-        salt,
-      },
+      task: 'generateProof',
+      proofId: proof.id,
+      payload: { inputs: proof.inputs, fields: proof.fields },
     });
 
     worker.send(message);
-    this.logger.log(`Sent proof task ${proofId} to worker`);
+    this.logger.log(`Sent proof task ${proof.id} to worker`);
   }
 
-  private async handleProofResult(data: { id: string; zkProof: Groth16Proof & SuiProofFields; addressSeed: string }) {
+  private async handleProofResult(proofId: string, data: { proof: Groth16Proof; public: PublicSignals }) {
     try {
       await this.prisma.proof.update({
-        where: { id: data.id },
+        where: { id: proofId },
         data: {
-          status: 'COMPLETED',
-          zkProof: data.zkProof as unknown as Prisma.InputJsonValue,
-          addressSeed: data.addressSeed,
+          status: 'generated',
+          proof: data.proof as unknown as Prisma.InputJsonValue,
+          public: data.public as unknown as Prisma.InputJsonValue,
         },
       });
 
-      this.logger.log(`Proof ${data.id} completed successfully`);
+      this.logger.log(`Proof ${proofId} completed successfully`);
     } catch (error) {
-      this.logger.error(`Failed to update proof ${data.id}:`, error);
+      this.logger.error(`Failed to update proof ${proofId}:`, error);
 
       try {
         await this.prisma.proof.update({
-          where: { id: data.id },
-          data: { status: 'FAILED' },
+          where: { id: proofId },
+          data: { status: 'failed' },
         });
       } catch (updateError) {
-        this.logger.error(`Failed to mark proof ${data.id} as failed:`, updateError);
+        this.logger.error(`Failed to mark proof ${proofId} as failed:`, updateError);
       }
     }
   }

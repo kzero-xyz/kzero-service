@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@kzero/dev": "workspace:^",
+    "@types/snarkjs": "^0.7.9",
     "typescript": "^5.8.2"
   },
   "dependencies": {

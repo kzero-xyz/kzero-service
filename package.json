@@ -24,6 +24,7 @@
     "dev": "turbo run dev --filter='./packages/*'",
     "dev:auth": "pnpm --filter @kzero/auth-server dev",
     "dev:proof": "pnpm --filter @kzero/proof-server dev",
+    "dev:worker": "pnpm --filter @kzero/proof-worker dev",
     "check-types": "turbo run check-types",
     "lint": "eslint --cache .",
     "lint:fix": "eslint --cache --fix .",
@@ -40,7 +41,8 @@
     "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
-    "@kzero/dev": "workspace:^",
+    "@kzero/dev": "workspace:*",
+    "@kzero/proof-worker": "workspace:*",
     "@vitest/coverage-istanbul": "^3.1.1",
     "@vitest/ui": "^3.1.1",
     "commitizen": "^4.3.0",

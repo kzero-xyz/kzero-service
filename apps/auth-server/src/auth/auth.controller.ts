@@ -147,7 +147,7 @@ export class AuthController {
       );
     }
 
-    // Step 1: Verify cookie state (CSRF protection - replicating Fastify checkStateFunction)
+    // Verify OAuth state cookie (CSRF protection)
     const cookieName = getOAuthStateCookieName(OAUTH_PROVIDERS.GOOGLE);
     const cookiePath = getOAuthCookiePath(OAUTH_PROVIDERS.GOOGLE);
 
@@ -164,23 +164,23 @@ export class AuthController {
     }
 
     this.logger.debug('State verification passed, clearing cookie');
-
-    // Step 2: Clear cookie (one-time use)
     res.clearCookie(cookieName, { path: cookiePath });
 
-    // Step 3: Verify nonce in database
+    // Verify nonce exists in database
     const nonce = await this.authService.findNonceByAuthState(state);
 
     if (!nonce) {
       throw new UnprocessableEntityException('Invalid state parameter - nonce not found');
     }
 
+    // Exchange authorization code for tokens
     const tokenData = await this.authService.exchangeGoogleCode(code);
 
     if (!tokenData.id_token) {
       throw new UnprocessableEntityException('No id_token in response');
     }
 
+    // Decode JWT and validate required claims
     const payload = this.authService.decodeJWT(tokenData.id_token);
 
     if (!payload.sub) {
@@ -191,6 +191,7 @@ export class AuthController {
       throw new UnprocessableEntityException('Invalid JWT: missing aud claim');
     }
 
+    // Create or update user record
     await this.authService.upsertUser(
       payload.sub,
       payload.email as string | undefined,
@@ -202,15 +203,18 @@ export class AuthController {
     );
 
     try {
+      // Generate salt (production: external server, dev: random)
       this.logger.debug('Generating salt from salt server');
       const salt = await this.authService.generateSalt(tokenData.id_token);
 
       this.logger.debug(`Salt generated: ${salt}`);
 
+      // Fetch Google's public keys for JWT signature verification
       const certs = await fetch(this.config.get('google.certUrl', { infer: true }))
         .then((r) => r.json())
         .then((json) => (json as { keys: JWTPublicKeyData[] }).keys);
 
+      // Generate ZK proof inputs from JWT + salt + nonce
       const { generateZKInput } = await import('@kzero/common');
 
       const { fields, inputs } = await generateZKInput({
@@ -222,6 +226,7 @@ export class AuthController {
         certs,
       });
 
+      // Store proof inputs with 'waiting' status for worker processing
       await this.prisma.proof.create({
         data: {
           nonce: nonce.nonce,
@@ -234,6 +239,7 @@ export class AuthController {
         },
       });
     } catch (error) {
+      // Create failed proof record for error tracking
       this.logger.error('Failed to create proof', error);
 
       await this.prisma.proof.create({

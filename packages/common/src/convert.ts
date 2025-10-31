@@ -1,8 +1,32 @@
 // Copyright 2024-2025 kzero authors & contributors
 // SPDX-License-Identifier: GNU General Public License v3.0
 
+/**
+ * ZK-Login Input Generator
+ *
+ * This module converts OAuth JWT tokens into zero-knowledge proof circuit inputs for zkLogin.
+ * It implements the zkLogin protocol which allows users to authenticate with blockchain applications
+ * using OAuth providers (like Google) while preserving privacy through zero-knowledge proofs.
+ *
+ * Key responsibilities:
+ * - Parse and extract JWT fields (header, payload, signature)
+ * - Convert JWT data into ZK circuit-compatible format
+ * - Compute Poseidon hashes for various JWT components
+ * - Generate address seed from user identity and salt
+ * - Prepare all inputs required for Groth16 proof generation
+ *
+ * The main function `generateZKInput` produces inputs for the zkLogin circuit which proves:
+ * 1. The user owns a valid JWT from an OAuth provider
+ * 2. The JWT contains the claimed identity (sub, aud, iss)
+ * 3. The ephemeral key is bound to the nonce in the JWT
+ * 4. The address seed is correctly derived from identity + salt
+ *
+ * @see https://docs.sui.io/concepts/cryptography/zklogin
+ */
+
 import type { HexString } from '@polkadot/util/types';
 import type { JWTPayload } from 'jose';
+import type { CircuitSignals, Groth16Proof } from 'snarkjs';
 
 import { Ed25519PublicKey } from '@mysten/sui.js/keypairs/ed25519';
 import { hexToU8a } from '@polkadot/util';
@@ -27,59 +51,10 @@ export interface JWTPublicKeyData {
   n: string;
 }
 
-export interface Groth16Proof {
-  pi_a: string[];
-  pi_b: string[][];
-  pi_c: string[];
-  protocol: string;
-  curve: string;
-}
+export { Groth16Proof };
 export type PublicSignals = string[];
 
-export interface ZKLoginInput {
-  padded_unsigned_jwt: string[];
-  payload_len: string;
-  num_sha2_blocks: string;
-  payload_start_index: string;
-  modulus: string[];
-  signature: string[];
-  ext_kc: string[];
-  ext_kc_length: string;
-  kc_index_b64: string;
-  kc_length_b64: string;
-  kc_name_length: string;
-  kc_colon_index: string;
-  kc_value_index: string;
-  kc_value_length: string;
-  ext_nonce: string[];
-  ext_nonce_length: string;
-  nonce_index_b64: string;
-  nonce_length_b64: string;
-  nonce_colon_index: string;
-  nonce_value_index: string;
-  ext_ev: string[];
-  ext_ev_length: string;
-  ev_index_b64: string;
-  ev_length_b64: string;
-  ev_name_length: string;
-  ev_colon_index: string;
-  ev_value_index: string;
-  ev_value_length: string;
-  ext_aud: string[];
-  ext_aud_length: string;
-  aud_index_b64: string;
-  aud_length_b64: string;
-  aud_colon_index: string;
-  aud_value_index: string;
-  aud_value_length: string;
-  iss_index_b64: string;
-  iss_length_b64: string;
-  eph_public_key: string[];
-  max_epoch: string;
-  jwt_randomness: string;
-  salt: string;
-  all_inputs_hash: string;
-}
+export type ZKLoginInput = CircuitSignals;
 
 export interface SuiProofFields {
   iss_base64_details: {
@@ -98,6 +73,38 @@ export interface ZKProofRequest {
   salt: string;
 }
 
+/**
+ * Generates zero-knowledge proof inputs from OAuth JWT for zkLogin circuit
+ *
+ * This is the main entry point that converts an OAuth JWT token into circuit inputs
+ * required by the zkLogin Groth16 proof system. The function performs complex transformations
+ * including JWT parsing, RSA signature extraction, field hashing, and address seed computation.
+ *
+ * @param jwt - The complete OAuth JWT token (header.payload.signature in base64url format)
+ * @param salt - Base64-encoded salt value used for address seed generation (privacy enhancing)
+ * @param keyStr - Hex-encoded ephemeral Ed25519 public key that was bound to the nonce
+ * @param epoch - Maximum epoch timestamp for key expiration
+ * @param randomness - Random value used in nonce generation
+ * @param certs - Array of OAuth provider's public keys (RSA) for signature verification
+ *
+ * @returns Object containing:
+ *   - inputs: Complete ZKLoginInput object with 50+ circuit input fields
+ *   - fields: SuiProofFields containing address_seed, header hash, and issuer details
+ *
+ * @example
+ * ```typescript
+ * const { inputs, fields } = await generateZKInput({
+ *   jwt: "eyJhbGci...",
+ *   salt: "abc123...",
+ *   keyStr: "0xfafd...",
+ *   epoch: "1234567890",
+ *   randomness: "292291085...",
+ *   certs: googlePublicKeys
+ * });
+ * ```
+ *
+ * @throws Error if RSA modulus cannot be found in certs
+ */
 export const generateZKInput = async ({
   jwt,
   salt,
@@ -116,14 +123,19 @@ export const generateZKInput = async ({
   inputs: ZKLoginInput;
   fields: SuiProofFields;
 }> => {
+  // Step 1: Parse JWT into components (header, payload, signature)
   const { header, payload } = parseJWT({ jwt });
   const headerBase64 = jwt.split('.')[0];
   const payloadBase64 = jwt.split('.')[1];
   const signatureBase64 = jwt.split('.')[2];
   const payloadStr = decodeBase64(payloadBase64);
+
+  // Step 2: Extract RSA modulus and signature from JWT
   const modulus = await getModulus({ header, certs });
   const modulusBN = getBigNumber(decodeBase64Url(modulus));
   const signatureBN = getBigNumber(decodeBase64Url(signatureBase64));
+
+  // Step 3: Convert to ZK circuit format (64-bit limbs for RSA verification)
   const modulusZK: string[] = getLimbs({
     base: 64,
     num: BigInt(modulusBN.toString()),
@@ -132,23 +144,32 @@ export const generateZKInput = async ({
     base: 64,
     num: BigInt(signatureBN.toString()),
   });
-  const subPadLength = 126;
-  const noncePadLength = 44;
-  const extEvLength = 53;
-  const extAudLength = 160;
 
-  const issPaddingLength = 224;
-  const kcNameLength = 32;
-  const kcValueLength = 115;
-  const audValueLength = 145;
-  const maxHeaderLen = 248;
-  const paddedUnsignedJWTLength = 1600;
+  // Padding lengths for JWT field extraction
+  // These are fixed by the zkLogin circuit constraints
+  const subPadLength = 126; // Max length for 'sub' field extraction (user identifier)
+  const noncePadLength = 44; // Max length for 'nonce' field (base64url encoded, ~32 bytes)
+  const extEvLength = 53; // Extended 'nonce' field length for circuit
+  const extAudLength = 160; // Max length for 'aud' field (client ID)
 
+  // Poseidon hash input padding lengths
+  // These define how many field elements we hash for each JWT component
+  const issPaddingLength = 224; // Issuer URL hash padding (e.g., "https://accounts.google.com")
+  const kcNameLength = 32; // Key claim name hash padding (e.g., "sub")
+  const kcValueLength = 115; // Key claim value hash padding (user's sub value)
+  const audValueLength = 145; // Audience value hash padding (OAuth client ID)
+  const maxHeaderLen = 248; // Maximum JWT header length for hashing
+  const paddedUnsignedJWTLength = 1600; // SHA-256 block padding for header.payload
+
+  // Step 4: Prepare unsigned JWT with SHA-256 padding for circuit verification
   const { numSha2Blocks, paddedUnsignedJwt, payloadLen, payloadStartIndex } = getUnsignedPaddedJWT({
     jwt,
     length: paddedUnsignedJWTLength,
     paddingValue: 0,
   });
+
+  // Step 5: Extract 'sub' field (user identifier) from JWT payload
+  // This includes the field position in base64 and ASCII representations
   const {
     asciiArrayLength: ext_kc_length,
     asciiVal: ext_kc,
@@ -165,6 +186,8 @@ export const generateZKInput = async ({
     payload: payloadStr,
     excludeEndComma: false,
   });
+  // Step 6: Extract 'nonce' field from JWT payload
+  // The nonce binds the ephemeral key to the JWT
   const {
     asciiArrayLength: ext_nonce_length,
     asciiVal: ext_nonce,
@@ -179,6 +202,9 @@ export const generateZKInput = async ({
     payload: payloadStr,
     excludeEndComma: false,
   });
+
+  // Step 7: Extract 'nonce' field again with extended length for circuit verification
+  // This provides additional context for the nonce field validation
   const {
     asciiArrayLength: ext_ev_length,
     asciiVal: ext_ev,
@@ -195,6 +221,8 @@ export const generateZKInput = async ({
     payload: payloadStr,
     excludeEndComma: false,
   });
+
+  // Step 8: Extract 'aud' field (OAuth client ID)
   const {
     asciiArrayLength: ext_aud_length,
     asciiVal: ext_aud,
@@ -210,6 +238,8 @@ export const generateZKInput = async ({
     payload: payloadStr,
     excludeEndComma: false,
   });
+
+  // Step 9: Extract 'iss' field (OAuth provider URL, e.g., https://accounts.google.com)
   const { b64Index: iss_index_b64_t, b64Size: iss_length_b64_t } = getExtKCFields({
     jwt,
     len: extAudLength,
@@ -217,17 +247,19 @@ export const generateZKInput = async ({
     payload: payloadStr,
     excludeEndComma: false,
   });
-  // console.log("original iss_length_b64_t",iss_length_b64_t);
   const iss_index_b64 = iss_index_b64_t;
   const iss_length_b64 = iss_length_b64_t;
+  // Step 10: Convert ephemeral public key to circuit format
+  // Split the 256-bit key into two 128-bit parts for field arithmetic
   const key = new Ed25519PublicKey(hexToU8a(keyStr));
   const publicKeyBytes = toBigIntBE(key.toSuiBytes());
-  const eph_public_key_0 = publicKeyBytes / 2n ** 128n;
-  const eph_public_key_1 = publicKeyBytes % 2n ** 128n;
-  // console.log("nonce",nonce,getPoseidonHash({fields:[eph_public_key_0.toString(),eph_public_key_1.toString(),
-  // epoch,randomness]}));
-  // console.log("eph_public_key_0",eph_public_key_0);
-  // console.log("eph_public_key_1",eph_public_key_1);
+  const eph_public_key_0 = publicKeyBytes / 2n ** 128n; // Upper 128 bits
+  const eph_public_key_1 = publicKeyBytes % 2n ** 128n; // Lower 128 bits
+
+  // Step 11: Compute Poseidon hashes for JWT fields
+  // These hashes are used to prove knowledge of specific JWT claims without revealing the full content
+
+  // Hash the issuer field (OAuth provider URL)
   const issBase64 = jwt.substring(iss_index_b64, iss_index_b64 + iss_length_b64);
   const issFieldF = getPoseidonHash({
     fields: hashStringToField({
@@ -237,9 +269,8 @@ export const generateZKInput = async ({
       value: issBase64,
     }),
   });
-  // console.log("ext_kc_length",ext_kc_length,"ext_kc",ext_kc ,"kc_index_b64",
-  // kc_index_b64,"kc_length_b64",kc_length_b64,"kc_colon_index",kc_colon_index,"kc_name_length",kc_name_length,
-  //     "kc_value_index",kc_value_index,"kc_value_length",kc_value_length);
+
+  // Hash the key claim name (always "sub" for user identifier)
   const kcNameF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: kcNameLength,
@@ -248,6 +279,7 @@ export const generateZKInput = async ({
       value: 'sub',
     }),
   });
+  // Hash the key claim value (user's unique identifier from OAuth provider)
   const kcValueF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: kcValueLength,
@@ -256,6 +288,8 @@ export const generateZKInput = async ({
       value: payload.sub!,
     }),
   });
+
+  // Hash the audience value (OAuth client ID)
   const audValueF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: audValueLength,
@@ -264,6 +298,8 @@ export const generateZKInput = async ({
       value: payload.aud! as string,
     }),
   });
+
+  // Hash the JWT header (contains alg, kid, typ)
   const headerF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: maxHeaderLen,
@@ -272,6 +308,8 @@ export const generateZKInput = async ({
       value: headerBase64,
     }),
   });
+
+  // Hash the RSA modulus for public key verification
   const modulusF = getPoseidonHash({
     fields: hashArrayToField({
       inBase: 64,
@@ -279,6 +317,10 @@ export const generateZKInput = async ({
       valueBE: modulusZK.reverse(),
     }),
   });
+
+  // Step 12: Compute address seed (user's blockchain address determinant)
+  // addressSeed = hash(kcNameF, kcValueF, audValueF, hash(salt))
+  // This binds the user's identity (sub + aud) with the privacy-preserving salt
   const saltBN = getBigNumber(getPaddedBase64Ascii({ base64: salt, length: salt.length, paddingValue: 0 }));
   const addressSeed = getAddressSeed({
     audValueF: audValueF.toString(),
@@ -286,16 +328,13 @@ export const generateZKInput = async ({
     kcValueF: kcValueF.toString(),
     salt: saltBN.toString(),
   });
-  // console.log("issFieldF",issFieldF);
-  // console.log("modulus_F",modulusF)
-  // console.log("kcName_F",kcNameF)
-  // console.log("kcValue_F",kcValueF)
-  // console.log("headerBase64",headerBase64.length);
-  // console.log("iss_index_mod4",iss_index_b64%(headerBase64.length+1));
-  // console.log("headerF",headerF);
-  // console.log("address Seed", addressSeed.toString(),"0x"+addressSeed.toString(16),saltBN.toString());
+
+  // Step 13: Calculate issuer index modulo 4 for base64 alignment verification
+  // This ensures the issuer field is correctly positioned in the JWT
   const issMod4 = (iss_index_b64 - (headerBase64.length + 1)) % 4;
-  // console.log("decodedJWT",header,payload,signature.length,signature,modulus,modulusBN);
+
+  // Step 14: Compute all_inputs_hash - a single commitment to all public inputs
+  // This hash is verified on-chain to ensure proof validity
   const allInputsHash = getAllInputsHash({
     addressSeed: addressSeed.toString(),
     headerF: headerF.toString(),
@@ -305,11 +344,13 @@ export const generateZKInput = async ({
     maxEpoch: epoch,
     modulusF: modulusF.toString(),
   });
-  // console.log("salt",salt);
-  // console.log("allInputsHash",allInputsHash);
-  // console.log("keys",eph_public_key_0.toString(),eph_public_key_1.toString());
+  // Step 15: Assemble complete circuit inputs
+  // These 50+ fields are all required by the zkLogin circuit for proof generation
   const inputs = {
+    // Public commitment hash
     all_inputs_hash: allInputsHash.toString(),
+
+    // Audience field extraction indices
     aud_colon_index: aud_colon_index.toString(),
     aud_index_b64: aud_index_b64.toString(),
     aud_length_b64: aud_length_b64.toString(),
@@ -366,6 +407,25 @@ export const generateZKInput = async ({
   };
 };
 
+/**
+ * Computes the address seed for a zkLogin user
+ *
+ * The address seed is a deterministic value derived from user identity and salt.
+ * It's used to generate the user's blockchain address while preserving privacy.
+ *
+ * Formula: addressSeed = poseidonHash([kcNameF, kcValueF, audValueF, poseidonHash([salt])])
+ *
+ * @param kcNameF - Poseidon hash of the key claim name (e.g., "sub")
+ * @param kcValueF - Poseidon hash of the key claim value (user's OAuth sub)
+ * @param audValueF - Poseidon hash of the audience (OAuth client ID)
+ * @param salt - Salt value (BigInt string) for privacy enhancement
+ *
+ * @returns The address seed as a BigInt
+ *
+ * @remarks
+ * The salt ensures that even if the same user authenticates with the same OAuth provider
+ * and client, different salts will produce different blockchain addresses, enhancing privacy.
+ */
 const getAddressSeed = ({
   audValueF,
   salt,
@@ -384,6 +444,29 @@ const getAddressSeed = ({
   });
 };
 
+/**
+ * Computes the all_inputs_hash commitment
+ *
+ * This hash is a Poseidon commitment to all public inputs of the zkLogin proof.
+ * It's verified on-chain to ensure that the proof was generated with the correct parameters.
+ *
+ * Formula: poseidonHash([ephKey0, ephKey1, addressSeed, maxEpoch, issFieldF, issIndexMod4, headerF, modulusF])
+ *
+ * @param keyStr - Hex-encoded ephemeral Ed25519 public key
+ * @param addressSeed - The computed address seed
+ * @param maxEpoch - Maximum epoch for key expiration
+ * @param issFieldF - Poseidon hash of the issuer field
+ * @param issIndexMod4 - Issuer index modulo 4 for base64 alignment
+ * @param headerF - Poseidon hash of JWT header
+ * @param modulusF - Poseidon hash of RSA modulus
+ *
+ * @returns The all_inputs_hash as a BigInt
+ *
+ * @remarks
+ * This hash binds together all the critical parameters: the ephemeral key, the user's
+ * derived address, the OAuth provider details, and the RSA public key. The on-chain
+ * smart contract can verify the proof by checking this single hash value.
+ */
 const getAllInputsHash = ({
   addressSeed,
   headerF,
@@ -401,18 +484,20 @@ const getAllInputsHash = ({
   headerF: string;
   modulusF: string;
 }) => {
+  // Convert ephemeral key to BigInt and split into 128-bit parts
   const key = new Ed25519PublicKey(hexToU8a(keyStr));
   const publicKeyBytes = toBigIntBE(key.toSuiBytes());
   const bytes: bigint[] = [];
   let tempKey = publicKeyBytes;
 
+  // Convert to byte array (for debugging purposes, not used in hash)
   while (tempKey > 0) {
     bytes.push(tempKey % 2n ** 8n);
     tempKey = tempKey / 2n ** 8n;
   }
 
   bytes.reverse();
-  // console.log("bytes ",bytes);
+
   const eph_public_key_0 = publicKeyBytes / 2n ** 128n;
   const eph_public_key_1 = publicKeyBytes % 2n ** 128n;
 
