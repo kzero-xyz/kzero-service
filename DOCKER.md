@@ -33,6 +33,30 @@ cp apps/proof-worker/.env.example apps/proof-worker/.env
 
 Edit the `.env` files with your production values.
 
+
+#### Important Configuration Steps
+
+Edit `apps/auth-server/.env` and make the following critical configurations:
+
+1. **Set Google Client ID**: Replace the placeholder Google OAuth Client ID with your actual Client ID obtained from Google Cloud Console:
+   ```env
+    GOOGLE_CLIENT_ID=your-google-client-id
+    GOOGLE_CLIENT_SECRET=your-google-client-secret
+   ```
+
+2. **Set Frontend Origin**: Configure `FRONTEND_ORIGIN` to match the port where kzero-wallet will run. It's recommended to set this to port `5176`:
+   ```env
+   FRONTEND_ORIGIN=http://localhost:5176
+   ```
+
+> **⚠️ Important**: The `FRONTEND_ORIGIN` must match the port where the wallet will run (5176), otherwise CORS errors will occur during authentication.
+
+3. **Comment Out**: If you are running locally, make sure to keep the following line in `apps/auth-server/.env` commented out:
+    ```env
+    # SALT_SERVER_URL=
+    ```
+> Do not set any value for `SALT_SERVER_URL` unless you intend to connect to a remote Salt Server.
+
 ### 3. Run Database Migration
 
 Before starting the services, run database migrations:
