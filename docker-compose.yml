@@ -161,6 +161,8 @@ services:
     environment:
       PROOF_SERVER_WS_URL: ws://proof-server:3001/ws
       NODE_ENV: development
+        # Increase Node.js heap size to 4GB (allow more memory for WASM proof generation)
+      NODE_OPTIONS: --max-old-space-size=4096
     env_file:
       - ./apps/proof-worker/.env
     volumes:
@@ -180,7 +182,7 @@ services:
       resources:
         limits:
           cpus: '2.0'
-          memory: 3G
+          # memory: 3G
         reservations:
           cpus: '1.5'
           memory: 2G
