@@ -1,0 +1,205 @@
+# Copyright 2024-2025 kzero authors & contributors
+# SPDX-License-Identifier: GNU General Public License v3.0
+
+# Production Docker Compose Configuration
+# Optimized for pnpm workspace + Turbo monorepo
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: kzero-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-kzero_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Use env var path if set, otherwise use named volume
+      # Example: POSTGRES_DATA_PATH=./data/postgres or /mnt/data/postgres
+      - ${POSTGRES_DATA_PATH:-postgres_data}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-kzero_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - kzero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Database Migration (Run Once)
+  # Best Practice: Run this service before deploying application
+  # Usage: docker compose run --rm migrate
+  # ============================================
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/auth-server/Dockerfile.migrate
+    container_name: kzero-migrate
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-kzero_db}?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kzero-network
+    profiles:
+      - tools  # Only run when explicitly called
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================
+  # Auth Server (NestJS OAuth2 + zkLogin)
+  # Note: Migrations must be run separately using migrate service
+  # ============================================
+  auth-server:
+    build:
+      context: .
+      dockerfile: apps/auth-server/Dockerfile
+      target: runner
+    container_name: kzero-auth-server
+    restart: unless-stopped
+    environment:
+      # Docker-specific overrides (container networking)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-kzero_db}?schema=public
+      PORT: 3000
+      HOST: 0.0.0.0
+      NODE_ENV: development
+    env_file:
+      - ./apps/auth-server/.env
+    ports:
+      - "${AUTH_SERVER_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kzero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1536M
+
+  # ============================================
+  # Proof Server (WebSocket + NestJS)
+  # ============================================
+  proof-server:
+    build:
+      context: .
+      dockerfile: apps/proof-server/Dockerfile
+      target: runner
+    container_name: kzero-proof-server
+    restart: unless-stopped
+    environment:
+      # Docker-specific overrides (container networking)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-kzero_db}?schema=public
+      PORT: 3001
+      HOST: 0.0.0.0
+      NODE_ENV: development
+    env_file:
+      - ./apps/proof-server/.env
+    ports:
+      - "${PROOF_SERVER_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kzero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1536M
+
+  # ============================================
+  # Proof Worker (ZK Proof Generation)
+  # Note: Requires external assets volume (zkLogin.zkey)
+  # ============================================
+  proof-worker:
+    build:
+      context: .
+      dockerfile: apps/proof-worker/Dockerfile
+      target: runner
+    container_name: kzero-proof-worker
+    restart: unless-stopped
+    environment:
+      PROOF_SERVER_WS_URL: ws://proof-server:3001/ws
+      NODE_ENV: development
+    env_file:
+      - ./apps/proof-worker/.env
+    volumes:
+      # Mount zkLogin.zkey (588MB) from host
+      # You must download this file first: pnpm setup:proof-worker
+      - ${PROOF_WORKER_ASSETS_PATH:-./apps/proof-worker/assets}:/app/apps/proof-worker/assets:ro
+    depends_on:
+      - proof-server
+    networks:
+      - kzero-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 3G
+        reservations:
+          cpus: '1.5'
+          memory: 2G
+
+# ============================================
+# Volumes
+# ============================================
+# Named volumes are used as fallback when path env vars are not set
+# For custom paths, set POSTGRES_DATA_PATH environment variable
+volumes:
+  postgres_data:
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  kzero-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16

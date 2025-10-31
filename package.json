@@ -36,6 +36,7 @@
     "db:migrate:deploy": "pnpm --filter @kzero/database prisma:migrate:deploy",
     "db:studio": "pnpm --filter @kzero/database prisma:studio",
     "db:reset": "pnpm --filter @kzero/database prisma:reset",
+    "setup:proof-worker": "node scripts/download-proof-worker-assets.mjs",
     "commit": "cz",
     "prepare": "husky",
     "preinstall": "npx only-allow pnpm"

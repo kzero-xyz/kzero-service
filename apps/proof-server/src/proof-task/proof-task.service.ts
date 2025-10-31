@@ -34,7 +34,7 @@ export class ProofTaskService {
     private readonly websocketGateway: ProofWebsocketGateway,
   ) {}
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_SECOND)
   async handleProofTasks() {
     try {
       // Find oldest pending proof (FIFO)

@@ -39,7 +39,6 @@
     "build": "tsc --build",
     "dev": "tsx watch src/index.ts start",
     "check-types": "tsc --noEmit",
-    "postinstall": "node scripts/download-assets.mjs",
     "setup": "node scripts/download-assets.mjs"
   },
   "devDependencies": {

@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from './auth/auth.module.js';
 import { validate } from './config/env.validation.js';
+import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProofModule } from './proof/proof.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -35,6 +36,7 @@ import { UsersModule } from './users/users.module.js';
       },
     }),
     PrismaModule,
+    HealthModule,
     AuthModule,
     UsersModule,
     ProofModule,
