@@ -41,8 +41,8 @@ export function startWorker(): void {
         JSON.stringify({
           task: 'generateProof',
           proofId: data.proofId,
-          results: result
-        })
+          results: result,
+        }),
       );
     }
   });

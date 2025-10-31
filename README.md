@@ -40,14 +40,23 @@ The use of a GPU significantly reduces proof generation time, as demonstrated by
 ## 📦 Packages
 
 - [@kzero/common](./packages/common) - Common utilities and cryptographic functions
+- [@kzero/database](./packages/database) - Shared database layer with Prisma ORM
 - [@kzero/logger](./packages/logger) - Structured logging system
 - [@kzero/proof-worker](./packages/proof-worker) - Zero-knowledge proof generation worker with JWT
 - [@kzero/dev](./packages/dev) - Development utilities and configurations
+
+## 🚀 Applications
+
+- [@kzero/auth-server](./apps/auth-server) - OAuth2 authentication server with zkLogin support (NestJS + Express)
+- [@kzero/proof-server](./apps/proof-server) - WebSocket proof generation task server (NestJS + WebSocket)
 
 ## 🛠️ Technology Stack
 - Node.js (>=20)
 - TypeScript
 - pnpm (v10.17.1)
+- NestJS (Backend framework)
+- Prisma (ORM)
+- PostgreSQL (Database)
 - Turbo (Monorepo tooling)
 - ESLint
 - Husky (Git hooks)
@@ -67,17 +76,24 @@ pnpm install
 
 ### Start development mode
 ```bash
+# Compile all packages in watch mode
 pnpm dev
+
+# Start individual services
+pnpm dev:auth    # Auth server only (port 3000)
+pnpm dev:proof   # Proof server only (port 3001)
 ```
 
-
 ### Development Scripts
-- `pnpm dev` - Start development mode
-- `pnpm build` - Build all packages
+- `pnpm dev` - Compile all packages in watch mode (common, logger, database, proof-worker)
+- `pnpm dev:auth` - Start auth server only
+- `pnpm dev:proof` - Start proof server only
+- `pnpm build` - Build all packages and apps
 - `pnpm check-types` - Run TypeScript type checking
-- `pnpm clean` - Clean build artifacts
 - `pnpm lint` - Run ESLint
 - `pnpm commit` - Create a conventional commit
+- `pnpm db:migrate` - Run Prisma migrations
+- `pnpm db:studio` - Open Prisma Studio (database GUI)
 
 
 ## 😄 Using the Proof Worker CLI

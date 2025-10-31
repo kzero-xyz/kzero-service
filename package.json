@@ -20,16 +20,24 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint --cache",
     "build": "turbo run build",
+    "dev": "turbo run dev --filter='./packages/*'",
+    "dev:auth": "pnpm --filter @kzero/auth-server dev",
+    "dev:proof": "pnpm --filter @kzero/proof-server dev",
     "check-types": "turbo run check-types",
-    "clean": "node scripts/clean.js",
-    "dev": "turbo run dev",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "lint": "eslint --cache .",
+    "lint:fix": "eslint --cache --fix .",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "db:generate": "pnpm --filter @kzero/database prisma:generate",
+    "db:migrate": "pnpm --filter @kzero/database prisma:migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @kzero/database prisma:migrate:deploy",
+    "db:studio": "pnpm --filter @kzero/database prisma:studio",
+    "db:reset": "pnpm --filter @kzero/database prisma:reset",
     "commit": "cz",
-    "preinstall": "npx only-allow pnpm",
-    "postinstall": "pnpm build && husky"
+    "prepare": "husky",
+    "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
     "@kzero/dev": "workspace:^",
@@ -40,15 +48,10 @@
     "eslint": "^9.21.0",
     "glob": "^11.0.1",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.9",
     "npm-run-all2": "^7.0.2",
     "release-please": "^16.18.0",
     "rimraf": "^6.0.1",
-    "turbo": "^2.5.0",
+    "turbo": "^2.5.8",
     "vitest": "^3.1.1"
-  },
-  "resolutions": {
-    "bn.js": "^5.2.1",
-    "typescript": "5.6.3"
   }
 }

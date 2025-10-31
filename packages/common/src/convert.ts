@@ -10,6 +10,8 @@ import { decodeJwt } from 'jose';
 
 import { poseidonHash } from './poseidon.js';
 
+export type { JWTPayload } from 'jose';
+
 interface JWTHeader {
   alg: string;
   kid: string;
@@ -102,7 +104,7 @@ export const generateZKInput = async ({
   epoch,
   keyStr,
   randomness,
-  certs
+  certs,
 }: {
   jwt: string;
   salt: string;
@@ -124,11 +126,11 @@ export const generateZKInput = async ({
   const signatureBN = getBigNumber(decodeBase64Url(signatureBase64));
   const modulusZK: string[] = getLimbs({
     base: 64,
-    num: BigInt(modulusBN.toString())
+    num: BigInt(modulusBN.toString()),
   });
   const signatureZK = getLimbs({
     base: 64,
-    num: BigInt(signatureBN.toString())
+    num: BigInt(signatureBN.toString()),
   });
   const subPadLength = 126;
   const noncePadLength = 44;
@@ -145,7 +147,7 @@ export const generateZKInput = async ({
   const { numSha2Blocks, paddedUnsignedJwt, payloadLen, payloadStartIndex } = getUnsignedPaddedJWT({
     jwt,
     length: paddedUnsignedJWTLength,
-    paddingValue: 0
+    paddingValue: 0,
   });
   const {
     asciiArrayLength: ext_kc_length,
@@ -155,13 +157,13 @@ export const generateZKInput = async ({
     colonIndex: kc_colon_index,
     nameLength: kc_name_length,
     valueIndex: kc_value_index,
-    valueLength: kc_value_length
+    valueLength: kc_value_length,
   } = getExtKCFields({
     jwt,
     len: subPadLength,
     name: 'sub',
     payload: payloadStr,
-    excludeEndComma: false
+    excludeEndComma: false,
   });
   const {
     asciiArrayLength: ext_nonce_length,
@@ -169,13 +171,13 @@ export const generateZKInput = async ({
     b64Index: nonce_index_b64,
     b64Size: nonce_length_b64,
     colonIndex: nonce_colon_index,
-    valueIndex: nonce_value_index
+    valueIndex: nonce_value_index,
   } = getExtKCFields({
     jwt,
     len: noncePadLength,
     name: 'nonce',
     payload: payloadStr,
-    excludeEndComma: false
+    excludeEndComma: false,
   });
   const {
     asciiArrayLength: ext_ev_length,
@@ -185,13 +187,13 @@ export const generateZKInput = async ({
     colonIndex: ev_colon_index,
     nameLength: ev_name_length,
     valueIndex: ev_value_index,
-    valueLength: ev_value_length
+    valueLength: ev_value_length,
   } = getExtKCFields({
     jwt,
     len: extEvLength,
     name: 'nonce',
     payload: payloadStr,
-    excludeEndComma: false
+    excludeEndComma: false,
   });
   const {
     asciiArrayLength: ext_aud_length,
@@ -200,20 +202,20 @@ export const generateZKInput = async ({
     b64Size: aud_length_b64,
     colonIndex: aud_colon_index,
     valueIndex: aud_value_index,
-    valueLength: aud_value_length
+    valueLength: aud_value_length,
   } = getExtKCFields({
     jwt,
     len: extAudLength,
     name: 'aud',
     payload: payloadStr,
-    excludeEndComma: false
+    excludeEndComma: false,
   });
   const { b64Index: iss_index_b64_t, b64Size: iss_length_b64_t } = getExtKCFields({
     jwt,
     len: extAudLength,
     name: 'iss',
     payload: payloadStr,
-    excludeEndComma: false
+    excludeEndComma: false,
   });
   // console.log("original iss_length_b64_t",iss_length_b64_t);
   const iss_index_b64 = iss_index_b64_t;
@@ -232,8 +234,8 @@ export const generateZKInput = async ({
       paddingLength: issPaddingLength,
       inBase: 8,
       outBase: 248,
-      value: issBase64
-    })
+      value: issBase64,
+    }),
   });
   // console.log("ext_kc_length",ext_kc_length,"ext_kc",ext_kc ,"kc_index_b64",
   // kc_index_b64,"kc_length_b64",kc_length_b64,"kc_colon_index",kc_colon_index,"kc_name_length",kc_name_length,
@@ -243,46 +245,46 @@ export const generateZKInput = async ({
       paddingLength: kcNameLength,
       inBase: 8,
       outBase: 248,
-      value: 'sub'
-    })
+      value: 'sub',
+    }),
   });
   const kcValueF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: kcValueLength,
       inBase: 8,
       outBase: 248,
-      value: payload.sub!
-    })
+      value: payload.sub!,
+    }),
   });
   const audValueF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: audValueLength,
       inBase: 8,
       outBase: 248,
-      value: payload.aud! as string
-    })
+      value: payload.aud! as string,
+    }),
   });
   const headerF = getPoseidonHash({
     fields: hashStringToField({
       paddingLength: maxHeaderLen,
       inBase: 8,
       outBase: 248,
-      value: headerBase64
-    })
+      value: headerBase64,
+    }),
   });
   const modulusF = getPoseidonHash({
     fields: hashArrayToField({
       inBase: 64,
       outBase: 248,
-      valueBE: modulusZK.reverse()
-    })
+      valueBE: modulusZK.reverse(),
+    }),
   });
   const saltBN = getBigNumber(getPaddedBase64Ascii({ base64: salt, length: salt.length, paddingValue: 0 }));
   const addressSeed = getAddressSeed({
     audValueF: audValueF.toString(),
     kcNameF: kcNameF.toString(),
     kcValueF: kcValueF.toString(),
-    salt: saltBN.toString()
+    salt: saltBN.toString(),
   });
   // console.log("issFieldF",issFieldF);
   // console.log("modulus_F",modulusF)
@@ -301,7 +303,7 @@ export const generateZKInput = async ({
     issIndexMod4: '' + issMod4,
     keyStr: keyStr,
     maxEpoch: epoch,
-    modulusF: modulusF.toString()
+    modulusF: modulusF.toString(),
   });
   // console.log("salt",salt);
   // console.log("allInputsHash",allInputsHash);
@@ -348,7 +350,7 @@ export const generateZKInput = async ({
     payload_len: payloadLen.toString(),
     payload_start_index: payloadStartIndex.toString(),
     salt: saltBN.toString(),
-    signature: signatureZK
+    signature: signatureZK,
   } as ZKLoginInput;
 
   return {
@@ -358,9 +360,9 @@ export const generateZKInput = async ({
       header: headerF.toString(),
       iss_base64_details: {
         index_mod_4: issMod4,
-        value: issFieldF.toString()
-      }
-    }
+        value: issFieldF.toString(),
+      },
+    },
   };
 };
 
@@ -368,7 +370,7 @@ const getAddressSeed = ({
   audValueF,
   salt,
   kcNameF,
-  kcValueF
+  kcValueF,
 }: {
   kcNameF: string;
   kcValueF: string;
@@ -378,7 +380,7 @@ const getAddressSeed = ({
   const hashedSalt = getPoseidonHash({ fields: [salt] }).toString();
 
   return getPoseidonHash({
-    fields: [kcNameF, kcValueF, audValueF, hashedSalt]
+    fields: [kcNameF, kcValueF, audValueF, hashedSalt],
   });
 };
 
@@ -389,7 +391,7 @@ const getAllInputsHash = ({
   issIndexMod4,
   keyStr,
   maxEpoch,
-  modulusF
+  modulusF,
 }: {
   keyStr: HexString;
   addressSeed: string;
@@ -401,7 +403,7 @@ const getAllInputsHash = ({
 }) => {
   const key = new Ed25519PublicKey(hexToU8a(keyStr));
   const publicKeyBytes = toBigIntBE(key.toSuiBytes());
-  const bytes: any[] = [];
+  const bytes: bigint[] = [];
   let tempKey = publicKeyBytes;
 
   while (tempKey > 0) {
@@ -423,8 +425,8 @@ const getAllInputsHash = ({
       issFieldF,
       issIndexMod4,
       headerF,
-      modulusF
-    ]
+      modulusF,
+    ],
   });
 };
 
@@ -436,7 +438,7 @@ const hashStringToField = ({
   paddingLength,
   value,
   inBase,
-  outBase
+  outBase,
 }: {
   value: string;
   paddingLength: number;
@@ -446,7 +448,7 @@ const hashStringToField = ({
   const asciiBe = getPaddedBase64Ascii({
     base64: value,
     length: paddingLength,
-    paddingValue: 0
+    paddingValue: 0,
   });
 
   asciiBe.reverse();
@@ -454,7 +456,7 @@ const hashStringToField = ({
   return convertBase({
     inArrayLE: [...asciiBe].map((m) => BigInt(m)),
     inBase,
-    outBase
+    outBase,
   });
 };
 
@@ -462,7 +464,7 @@ const hashArrayToField = ({ valueBE, inBase, outBase }: { valueBE: string[]; inB
   return convertBase({
     inArrayLE: [...valueBE.map((m) => BigInt(m)).reverse()],
     inBase,
-    outBase
+    outBase,
   });
 };
 
@@ -470,7 +472,7 @@ const convertBase = ({ inArrayLE, inBase, outBase }: { inBase: number; outBase: 
   //Convert to binary
   const binaryValue = convertArrayToBinary({
     valuesLE: inArrayLE.map((m) => m.toString()),
-    inBase
+    inBase,
   });
   const convertedValueLE: string[] = [];
   const chunkSize = outBase;
@@ -553,7 +555,7 @@ const getLimbs = ({ base, num }: { num: bigint; base: number }): string[] => {
 const getPaddedBase64Ascii = ({
   base64,
   length,
-  paddingValue
+  paddingValue,
 }: {
   base64: string;
   length: number;
@@ -561,14 +563,14 @@ const getPaddedBase64Ascii = ({
 }): Uint8Array => {
   return new Uint8Array([
     ...Array.from(Array(base64.length).keys()).map((m) => base64.charCodeAt(m)),
-    ...Array(length - base64.length).fill(paddingValue)
+    ...Array(length - base64.length).fill(paddingValue),
   ]);
 };
 
 const getUnsignedPaddedJWT = ({
   jwt,
   length,
-  paddingValue
+  paddingValue,
 }: {
   jwt: string;
   length: number;
@@ -608,14 +610,14 @@ const getUnsignedPaddedJWT = ({
     paddedUnsignedJwt: unsignedPaddedJWT,
     numSha2Blocks,
     payloadLen: jwtArray[1].length,
-    payloadStartIndex: jwtArray[0].length + 1
+    payloadStartIndex: jwtArray[0].length + 1,
   };
 };
 
 const getBase64String = ({
   hayStack,
   jwt,
-  needle
+  needle,
 }: {
   hayStack: string;
   needle: string;
@@ -638,7 +640,7 @@ const getBase64String = ({
   return {
     needleB64,
     startB64: strIndexB64 + header.length + '.'.length,
-    endB64: endIndexB64 + header.length + '.'.length
+    endB64: endIndexB64 + header.length + '.'.length,
   };
 };
 
@@ -646,7 +648,7 @@ const getExtKCFields = ({
   name,
   payload,
   len,
-  jwt
+  jwt,
 }: {
   payload: string;
   name: string;
@@ -675,7 +677,7 @@ const getExtKCFields = ({
   const { endB64, startB64 } = getBase64String({
     hayStack: payload,
     jwt,
-    needle: finalVal
+    needle: finalVal,
   });
   // console.log("startB64=",startB64,"b64Index=",b64Index,"length=",(endB64-startB64),"b64Size=",b64Size,",finalVal=",finalVal);
   // console.log("b64Index=",b64Index,",b64Size=",b64Size,"finalVal.len",finalVal.length);
@@ -685,7 +687,7 @@ const getExtKCFields = ({
   const asciiArray = getPaddedBase64Ascii({
     base64: finalVal,
     length: finalVal.length,
-    paddingValue: 0
+    paddingValue: 0,
   });
   // let ascii_val_len=ascii_val.len();
   const asciiArrayLength = asciiArray.length;
@@ -713,7 +715,7 @@ const getExtKCFields = ({
     nameLength,
     valueIndex,
     valueLength,
-    value: finalVal
+    value: finalVal,
   };
 };
 
@@ -741,7 +743,7 @@ const decodeBase64Inner = (encoded: string): Uint8Array => {
   return new Uint8Array(
     atob(encoded)
       .split('')
-      .map((c) => c.charCodeAt(0))
+      .map((c) => c.charCodeAt(0)),
   );
 };
 

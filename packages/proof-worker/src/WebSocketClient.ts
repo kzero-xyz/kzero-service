@@ -69,7 +69,7 @@ export class WebSocketClient extends WebSocket {
    * @param error - The error that occurred
    */
   private handleError(error: Error): void {
-    logger.error('WebSocket error:', error);
+    logger.error({ err: error }, 'WebSocket error');
     this.clearTimers();
     this.terminate();
     this.attemptReconnect();
@@ -156,7 +156,7 @@ export class WebSocketClient extends WebSocket {
 
       this.reconnectAttempts = 0;
     } catch (error) {
-      logger.error('Failed to create WebSocket connection:', error);
+      logger.error({ err: error }, 'Failed to create WebSocket connection');
       this.attemptReconnect();
     }
   }

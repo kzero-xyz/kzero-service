@@ -5,4 +5,4 @@ export * from './createLogger.js';
 
 export { type LoggerConfig } from './config.js';
 
-export type { Logger } from 'winston';
+export type { Logger } from 'pino';

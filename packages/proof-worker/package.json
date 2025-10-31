@@ -16,36 +16,35 @@
   "type": "module",
   "name": "@kzero/proof-worker",
   "version": "0.0.0",
-  "main": "build/index.js",
-  "module": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "import": {
         "@kzero/source": "./src/index.ts",
-        "types": "./build/index.d.ts",
-        "default": "./build/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     }
   },
   "bin": "./cli.js",
   "files": [
-    "build",
+    "dist",
     "cli.js",
     "README.md"
   ],
   "scripts": {
     "build": "tsc --build",
-    "check-types": "tsc --noEmit",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@kzero/dev": "workspace:^",
     "@types/fs-extra": "^11",
     "@types/ws": "^8",
     "@types/yargs": "^17.0.33",
-    "npm-run-all2": "^7.0.2",
     "typescript": "^5.8.2"
   },
   "dependencies": {

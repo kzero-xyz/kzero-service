@@ -19,7 +19,7 @@ const CONFIG = {
   baseCacheDir: process.env.CACHE_DIR || '.cache',
   zkeyPath: process.env.ZKEY_PATH || 'zkLogin-main.zkey',
   witnessBinPath: resolve(process.cwd(), process.env.WITNESS_BIN_PATH || 'zkLogin'),
-  proverBinPath: resolve(process.cwd(), process.env.PROVER_BIN_PATH || 'prover')
+  proverBinPath: resolve(process.cwd(), process.env.PROVER_BIN_PATH || 'prover'),
 } as const;
 
 /**
@@ -48,7 +48,7 @@ export async function generateProof(inputs: ZKLoginInput, fields: SuiProofFields
     input: `${cacheDir}/input.json`,
     witness: `${cacheDir}/witness.wtns`,
     proof: `${cacheDir}/proof.json`,
-    public: `${cacheDir}/public.json`
+    public: `${cacheDir}/public.json`,
   };
   const start = performance.now();
 
@@ -60,7 +60,7 @@ export async function generateProof(inputs: ZKLoginInput, fields: SuiProofFields
     // Generate witness
     logger.info('Generating witness...');
     await execAsync(`${CONFIG.witnessBinPath} ${paths.input} ${paths.witness}`, {
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
 
     // Generate proof

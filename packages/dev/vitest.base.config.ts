@@ -5,11 +5,13 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    workspace: ['packages/*'],
+    globals: true,
+    environment: 'node',
+    include: ['src/**/*.spec.ts', 'test/**/*.spec.ts', 'tests/**/*.test.ts'],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'json', 'html'],
-      enabled: true
-    }
-  }
+      exclude: ['node_modules/', 'dist/', '**/*.spec.ts', '**/*.config.ts', '**/index.ts'],
+    },
+  },
 });

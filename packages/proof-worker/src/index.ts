@@ -12,7 +12,7 @@ import { generateZKInput, type JWTPublicKeyData } from '@kzero/common';
 import { generateProof } from './generateProof.js';
 import { startWorker } from './worker.js';
 
-yargs(hideBin(process.argv))
+void yargs(hideBin(process.argv))
   .scriptName('proof-worker')
   .usage('$0 <cmd>')
   .wrap(null)
@@ -28,32 +28,32 @@ yargs(hideBin(process.argv))
         .option('jwt', {
           alias: 'j',
           type: 'string',
-          description: 'jwt to generate proof for'
+          description: 'jwt to generate proof for',
         })
         .option('salt', {
           alias: 's',
           type: 'string',
-          description: 'salt to generate proof for'
+          description: 'salt to generate proof for',
         })
         .option('epoch', {
           alias: 'e',
           type: 'string',
-          description: 'epoch for proof'
+          description: 'epoch for proof',
         })
         .option('key', {
           alias: 'k',
           type: 'string',
-          description: 'ephemeralPublicKey generate proof for'
+          description: 'ephemeralPublicKey generate proof for',
         })
         .option('randomness', {
           alias: 'r',
           type: 'string',
-          description: 'randomness for generate proof'
+          description: 'randomness for generate proof',
         })
         .option('cert-url', {
           alias: 'c',
           type: 'string',
-          description: 'cert url for generate proof, e.g. https://www.googleapis.com/oauth2/v3/certs'
+          description: 'cert url for generate proof, e.g. https://www.googleapis.com/oauth2/v3/certs',
         })
         .demandOption(['jwt', 'key', 'epoch', 'randomness', 'cert-url']),
     async (argv) => {
@@ -66,7 +66,7 @@ yargs(hideBin(process.argv))
 
       const certs: JWTPublicKeyData[] = await fetch(certUrl)
         .then((res) => res.json())
-        .then((json: any) => json.keys);
+        .then((json) => (json as { keys: JWTPublicKeyData[] }).keys);
 
       generateZKInput({
         jwt,
@@ -74,7 +74,7 @@ yargs(hideBin(process.argv))
         epoch,
         keyStr: key as `0x${string}`,
         randomness,
-        certs
+        certs,
       })
         .then(({ inputs, fields }) => {
           return generateProof(inputs, fields);
@@ -85,7 +85,7 @@ yargs(hideBin(process.argv))
         .catch(() => {
           process.exit(1);
         });
-    }
+    },
   )
   .demandCommand(1, 'You must provide a valid command.')
   .help()

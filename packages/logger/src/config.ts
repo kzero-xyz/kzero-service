@@ -3,16 +3,20 @@
 
 import { z } from 'zod';
 
+/**
+ * Logger configuration schema for Pino
+ */
 export const LoggerConfigSchema = z.object({
+  /** Module name for context identification */
   module: z.string(),
-  level: z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']).default('info'),
+  /** Log level - Pino levels */
+  level: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  /** Optional file path for file logging */
   logPath: z.string().optional(),
-  maxSize: z.string().default('50m'),
-  maxFiles: z.string().default('14d'),
+  /** Log format: json (default) or text (using pino-pretty) */
   format: z.enum(['json', 'text']).default('json'),
-  console: z.boolean().default(true),
-  customTransports: z.array(z.any()).default([]),
-  metadata: z.record(z.any()).optional()
+  /** Optional metadata to include in all logs */
+  metadata: z.record(z.any()).optional(),
 });
 
 export type LoggerConfig = z.infer<typeof LoggerConfigSchema>;

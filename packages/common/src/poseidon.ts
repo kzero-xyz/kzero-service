@@ -17,7 +17,7 @@ import {
   poseidon13,
   poseidon14,
   poseidon15,
-  poseidon16
+  poseidon16,
 } from 'poseidon-lite';
 
 /**
@@ -47,7 +47,7 @@ const poseidonHashFunctions = [
   poseidon13,
   poseidon14,
   poseidon15,
-  poseidon16
+  poseidon16,
 ];
 
 /**

@@ -11,12 +11,12 @@ export const loggers = {
     module: 'ProofWorker',
     logPath: process.env.LOG_PATH,
     level: process.env.LOG_LEVEL as LoggerConfig['level'],
-    format: 'text'
+    format: 'text',
   }) as Logger,
   generateProof: createModuleLogger({
     module: 'GenerateProof',
     logPath: process.env.LOG_PATH,
     level: process.env.LOG_LEVEL as LoggerConfig['level'],
-    format: 'text'
-  }) as Logger
+    format: 'text',
+  }) as Logger,
 };
