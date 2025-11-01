@@ -8,11 +8,11 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ProofWebsocketGateway } from '../proof-websocket/proof-websocket.gateway.js';
 
 /**
- * Proof generation timeout (60 seconds)
+ * Proof generation timeout (600 seconds)
  *
  * Typical generation: 10-30s. Adjust based on worker performance.
  */
-const PROOF_TIMEOUT = 60000;
+const PROOF_TIMEOUT = 600000;
 
 /**
  * Proof Task Scheduler Service
