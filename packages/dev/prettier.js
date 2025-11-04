@@ -7,7 +7,7 @@ export default {
   embeddedLanguageFormatting: 'off',
   endOfLine: 'lf',
   htmlWhitespaceSensitivity: 'ignore',
-  jsxBracketSameLine: false,
+  bracketSameLine: false, // Fixed: replaced deprecated jsxBracketSameLine
   jsxSingleQuote: true,
   printWidth: 120,
   proseWrap: 'preserve',
@@ -15,6 +15,6 @@ export default {
   semi: true,
   singleQuote: true,
   tabWidth: 2,
-  trailingComma: 'none',
-  useTabs: false
+  trailingComma: 'all',
+  useTabs: false,
 };

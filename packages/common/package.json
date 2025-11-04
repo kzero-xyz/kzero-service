@@ -15,32 +15,39 @@
   "type": "module",
   "name": "@kzero/common",
   "version": "0.0.0",
-  "main": "build/index.js",
-  "module": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "import": {
         "@kzero/source": "./src/index.ts",
-        "types": "./build/index.d.ts",
-        "default": "./build/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "@kzero/source": "./src/index.ts",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     }
   },
   "files": [
-    "build",
+    "dist",
     "README.md"
   ],
   "scripts": {
     "build": "tsc --build",
-    "check-types": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "vitest run"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@kzero/dev": "workspace:^",
-    "npm-run-all2": "^7.0.2",
+    "@types/snarkjs": "^0.7.9",
     "typescript": "^5.8.2"
   },
   "dependencies": {

@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// OAuth Provider enum - lowercase to match tmp/auth-server
+enum Provider {
+  google
+  twitter
+  github
+}
+
+// User model - stores OAuth user information
+// Matches tmp/auth-server UserEntity structure
+model User {
+  id           String    @id @default(uuid())
+  sub          String    @unique // OAuth subject (unique identifier from provider)
+  email        String?   // User email (nullable)
+  name         String    // User display name (required)
+  picture      String?   // User avatar URL
+  provider     Provider  // OAuth provider (google, twitter, github)
+  tokenType    String    @map("token_type") // OAuth token type (e.g., "Bearer")
+  accessToken  String    @map("access_token") // OAuth access token
+  refreshToken String?   @map("refresh_token") // OAuth refresh token
+  idToken      String?   @map("id_token") // OAuth ID token (JWT)
+  expiresIn    Int       @map("expires_in") // Token expiration duration in seconds
+  expiresAt    DateTime  @map("expires_at") // Token expiration timestamp
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([sub])
+  @@index([provider, sub])
+  @@map("users")
+}
+
+// Nonce model - stores ephemeral keys and nonces for zkLogin
+// Matches tmp/auth-server NonceEntity structure
+model Nonce {
+  id                 String   @id @default(uuid())
+  ephemeralPublicKey String   @unique @map("ephemeral_public_key") // Base64 encoded ephemeral public key
+  nonce              String   @unique // Unique nonce for this session
+  maxEpoch           BigInt   @map("max_epoch") // Maximum epoch for this nonce
+  randomness         String   @unique // Random value for nonce generation
+  authState          String   @unique @map("auth_state") // OAuth state parameter for CSRF protection
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@index([nonce])
+  @@index([ephemeralPublicKey])
+  @@index([authState])
+  @@map("nonces")
+}
+
+// Proof Status enum - lowercase to match tmp/auth-server
+enum ProofStatus {
+  waiting
+  generating
+  generated
+  failed
+}
+
+// Proof model - stores ZK proof generation requests and results
+// Matches tmp/auth-server ProofEntity structure
+model Proof {
+  id        String      @id @default(uuid())
+  nonce     String      @unique // Nonce string (not foreign key, direct value)
+  jwt       String      // Original OAuth JWT
+  inputs    Json?       // ZKLoginInput - input data for ZK proof generation
+  fields    Json?       // SuiProofFields - Sui-specific proof fields
+  proof     Json?       // Groth16Proof - generated ZK proof (null if not yet generated)
+  public    Json?       // PublicSignals - public signals from proof
+  status    ProofStatus // Status: 'waiting', 'generating', 'generated', 'failed'
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  @@index([nonce])
+  @@index([status])
+  @@map("proofs")
+}

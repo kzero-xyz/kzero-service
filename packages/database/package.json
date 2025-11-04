@@ -1,0 +1,51 @@
+{
+  "name": "@kzero/database",
+  "version": "0.1.0",
+  "description": "Shared database layer with Prisma",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "generated",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "@kzero/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./client": {
+      "@kzero/source": "./src/client.ts",
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm prisma:generate && tsc",
+    "dev": "run-p dev:generate dev:tsc",
+    "dev:tsc": "tsc --watch",
+    "dev:generate": "prisma generate --watch",
+    "check-types": "tsc --noEmit",
+    "prepare": "pnpm prisma:generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset"
+  },
+  "devDependencies": {
+    "@kzero/dev": "workspace:*",
+    "@types/node": "^22.10.7",
+    "npm-run-all2": "^8.0.4",
+    "prisma": "^6.18.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@prisma/client": "6.18.0"
+  }
+}

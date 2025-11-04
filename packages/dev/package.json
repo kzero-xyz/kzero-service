@@ -16,11 +16,19 @@
   "type": "module",
   "name": "@kzero/dev",
   "version": "0.0.0",
+  "exports": {
+    "./package.json": "./package.json",
+    "./eslint.js": "./eslint.js",
+    "./prettier.js": "./prettier.js",
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./vitest.base.config": "./vitest.base.config.ts",
+    "./vitest.base.config.js": "./vitest.base.config.ts"
+  },
   "files": [
     "eslint.js",
     "prettier.js",
     "tsconfig.base.json",
-    "vitest.config.js",
+    "vitest.base.config.ts",
     "README.md"
   ],
   "devDependencies": {

@@ -1,0 +1,62 @@
+{
+  "author": "kzero",
+  "bugs": "https://github.com/kzero-xyz/kzero-service/issues",
+  "contributors": [],
+  "description": "kzero proof generation worker",
+  "homepage": "https://github.com/kzero-xyz/kzero-service/tree/master/apps/proof-worker#readme",
+  "license": "GNU General Public License v3.0",
+  "maintainers": [],
+  "repository": {
+    "directory": "apps/proof-worker",
+    "type": "git",
+    "url": "https://github.com/kzero-xyz/kzero-service.git"
+  },
+  "private": true,
+  "sideEffects": true,
+  "type": "module",
+  "name": "@kzero/proof-worker",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@kzero/source": "./src/index.ts",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "bin": "./dist/index.js",
+  "files": [
+    "dist",
+    "assets",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "tsx watch src/index.ts start",
+    "check-types": "tsc --noEmit",
+    "setup": "node scripts/download-assets.mjs"
+  },
+  "devDependencies": {
+    "@kzero/dev": "workspace:^",
+    "@types/fs-extra": "^11",
+    "@types/snarkjs": "^0.7.9",
+    "@types/ws": "^8",
+    "@types/yargs": "^17.0.33",
+    "tsx": "^4.20.6",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@kzero/common": "workspace:*",
+    "@kzero/logger": "workspace:*",
+    "dotenv": "^16.4.7",
+    "fs-extra": "^11.3.0",
+    "snarkjs": "^0.7.5",
+    "ws": "^8.18.1",
+    "yargs": "^17.7.2"
+  }
+}

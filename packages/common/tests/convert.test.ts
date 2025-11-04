@@ -70,8 +70,8 @@ test('generateZKInput generates correct input for valid JWT', async () => {
       n: '7_H7AoQIGB-rZGIhz6ufR4ChFpkPBudrNoXbPHspjtMk1N8db1PbFa-v1yW0Pv8ujm_ewpQQLJz-KxJQz83-euIgMDKhKWc8Wd_lfjRrR0Yq6pr7JHcQDON4twaMno9mHfeFQLkKWId5hl4aQps9TEcm_jsK8MJJbWWKDjKgbMiu0U6-U-CdWbSoy42U3-trO359tTQfD8f8rkK4Ik2O3BtEgXoZ8mFDs84PR6IcYC2R5BN25bCcpK87Ch9KwEsU05c-ykPhH9AB6Ey5riR8gZ93kHxJPe8ZBmFfaWLU--t5IfwJh4g_6vDmFXZaiZm0TpYy7g9r9Vp8FW7OEQ7N1Q',
       alg: 'RS256',
       use: 'sig',
-      kid: 'c7e04465649ffa606557650c7e65f0a87ae00fe8'
-    }
+      kid: 'c7e04465649ffa606557650c7e65f0a87ae00fe8',
+    },
   ];
 
   const result = await generateZKInput({
@@ -80,7 +80,7 @@ test('generateZKInput generates correct input for valid JWT', async () => {
     epoch,
     keyStr,
     randomness,
-    certs
+    certs,
   });
 
   expect(result).toHaveProperty('inputs');
@@ -105,8 +105,8 @@ test('generateZKInput handles invalid JWT', async () => {
       n: '7_H7AoQIGB-rZGIhz6ufR4ChFpkPBudrNoXbPHspjtMk1N8db1PbFa-v1yW0Pv8ujm_ewpQQLJz-KxJQz83-euIgMDKhKWc8Wd_lfjRrR0Yq6pr7JHcQDON4twaMno9mHfeFQLkKWId5hl4aQps9TEcm_jsK8MJJbWWKDjKgbMiu0U6-U-CdWbSoy42U3-trO359tTQfD8f8rkK4Ik2O3BtEgXoZ8mFDs84PR6IcYC2R5BN25bCcpK87Ch9KwEsU05c-ykPhH9AB6Ey5riR8gZ93kHxJPe8ZBmFfaWLU--t5IfwJh4g_6vDmFXZaiZm0TpYy7g9r9Vp8FW7OEQ7N1Q',
       alg: 'RS256',
       use: 'sig',
-      kid: 'c7e04465649ffa606557650c7e65f0a87ae00fe8'
-    }
+      kid: 'c7e04465649ffa606557650c7e65f0a87ae00fe8',
+    },
   ];
 
   await expect(
@@ -116,7 +116,7 @@ test('generateZKInput handles invalid JWT', async () => {
       epoch,
       keyStr,
       randomness,
-      certs
-    })
+      certs,
+    }),
   ).rejects.toThrow();
 });

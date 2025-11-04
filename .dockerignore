@@ -1,0 +1,105 @@
+# Copyright 2024-2025 kzero authors & contributors
+# SPDX-License-Identifier: GNU General Public License v3.0
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.pnpm-store
+
+# Build outputs
+dist
+build
+.turbo
+out
+
+# Testing
+coverage
+.vitest
+.nyc_output
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+*.env
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Misc
+*.pem
+*.key
+*.cert
+
+# Documentation (keep essential README)
+*.md
+!README.md
+!CLAUDE.md
+docs
+
+# Test files
+test
+tests
+__tests__
+*.spec.ts
+*.spec.js
+*.test.ts
+*.test.js
+vitest.config.*
+vitest.e2e.config.*
+
+# Development tools
+.husky
+.commitlintrc
+.prettierrc
+.prettierignore
+.eslintrc
+.eslintignore
+.editorconfig
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts
+scripts/*.dev.sh
+scripts/*.local.sh
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.temp
+
+# Proof worker assets (mounted externally)
+apps/proof-worker/assets/zkLogin.zkey

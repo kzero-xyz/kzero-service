@@ -23,7 +23,7 @@ import { hexToU8a } from '@polkadot/util';
  */
 export function generateNonce(
   ephemeralPublicKey: HexString,
-  maxEpoch: number = Date.now() + 3600 * 24 * 1000
+  maxEpoch: number = Date.now() + 3600 * 24 * 1000,
 ): { nonce: string; randomness: string; maxEpoch: number } {
   // Convert hex string to Ed25519 public key
   const ephemeralPublicKeyEd25519 = new Ed25519PublicKey(hexToU8a(ephemeralPublicKey));

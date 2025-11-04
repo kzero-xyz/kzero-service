@@ -22,6 +22,12 @@
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "resolvePackageJsonExports": true,
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictBindCallApply": true,
     "customConditions": ["@kzero/source"]
   }
 }
